@@ -113,7 +113,11 @@ class Window:
 
         submit = tk.Button(frame, text='Browse', font=40, bg=bg_color, fg=bg_color, command=lambda: self.parser())
         submit.place(relx=0.02, rely=0.06, relwidth=0.3, relheight=0.3)
-        clear = tk.Button(frame, text="Clear", fg=bg_color, command=lambda: self.clear_widget_text(self.text_label))
+        clear = tk.Button(frame, text="Clear", fg=bg_color, command=lambda: [
+            self.clear_widget_text(self.text_label), self.clear_widget_text(self.results1),
+            self.clear_widget_text(self.results2), self.clear_widget_text(self.results3),
+            self.clear_widget_text(self.results4), self.clear_widget_text(self.results5)])
+
         clear.place(relx=0.355, rely=0.06, relwidth=0.3, relheight=0.3)
         quit = tk.Button(frame, text="Quit", fg=bg_color, command=lambda: sys.exit(1))
         quit.place(relx=0.69, rely=0.06, relwidth=0.3, relheight=0.3)
