@@ -82,11 +82,12 @@ class Window:
         widget['text'] = ""
 
     def __init__(self, master):
-        height = 400
-        width = 500
+
+        boss.minsize(width=700, height=600)
+        boss.maxsize(width=700, height=600)
         bg_color = '#485885'
 
-        C = tk.Canvas(boss, height=height, width=width)
+        C = tk.Canvas(boss)
         self.background_image = tk.PhotoImage(file='./t2.png')
         background_label = tk.Label(boss, image=self.background_image)
         background_label.place(x=0, y=0, relwidth=1, relheight=1)
@@ -111,15 +112,15 @@ class Window:
                              fg="white")
         path_text.place(relx=0.04, rely=0.47, relwidth=0.19, relheight=0.4)
 
-        submit = tk.Button(frame, text='Browse', font=40, bg=bg_color, fg=bg_color, command=lambda: self.parser())
+        submit = tk.Button(frame, text='Browse', font=40, fg=bg_color, command=lambda: self.parser())
         submit.place(relx=0.02, rely=0.06, relwidth=0.3, relheight=0.3)
-        clear = tk.Button(frame, text="Clear", fg=bg_color, command=lambda: [
+        clear = tk.Button(frame, text="Clear", font=40, fg=bg_color, command=lambda: [
             self.clear_widget_text(self.text_label), self.clear_widget_text(self.results1),
             self.clear_widget_text(self.results2), self.clear_widget_text(self.results3),
             self.clear_widget_text(self.results4), self.clear_widget_text(self.results5)])
 
         clear.place(relx=0.355, rely=0.06, relwidth=0.3, relheight=0.3)
-        quit = tk.Button(frame, text="Quit", fg=bg_color, command=lambda: sys.exit(1))
+        quit = tk.Button(frame, text="Quit", font=40, fg=bg_color, command=lambda: sys.exit(1))
         quit.place(relx=0.69, rely=0.06, relwidth=0.3, relheight=0.3)
 
         # self.bbutton = tk.Button(self.frame1, text="Read", command=lambda: self.zbar())
@@ -132,43 +133,43 @@ class Window:
         lower_frame.pack(fill="both", expand="yes")
         lower_frame.place(relx=0.5, rely=0.32, relwidth=0.75, relheight=0.6, anchor='n')
 
-        results1_text = tk.Label(lower_frame, text="Part No: ", anchor='sw', justify='left', bg=bg_color,
+        results1_text = tk.Label(lower_frame, text="Part No: ", font=40, anchor='sw', justify='left', bg=bg_color,
                                  fg="white")
         results1_text.place(relx=0.04, rely=0.04, relwidth=0.4, relheight=0.15)
 
-        results2_text = tk.Label(lower_frame, text="Customer Part No: ", anchor='sw', justify='left', bg=bg_color,
-                                 fg="white")
+        results2_text = tk.Label(lower_frame, text="Customer Part No: ", font=40, anchor='sw', justify='left',
+                                 bg=bg_color, fg="white")
         results2_text.place(relx=0.04, rely=0.23, relwidth=0.4, relheight=0.15)
 
-        results3_text = tk.Label(lower_frame, text="Quantity: ", anchor='sw', justify='left', bg=bg_color,
+        results3_text = tk.Label(lower_frame, text="Quantity: ", font=40, anchor='sw', justify='left', bg=bg_color,
                                  fg="white")
         results3_text.place(relx=0.04, rely=0.42, relwidth=0.4, relheight=0.15)
 
-        results4_text = tk.Label(lower_frame, text="Lot No: ", anchor='sw', justify='left', bg=bg_color,
+        results4_text = tk.Label(lower_frame, text="Lot No: ", font=40, anchor='sw', justify='left', bg=bg_color,
                                  fg="white")
         results4_text.place(relx=0.04, rely=0.61, relwidth=0.4, relheight=0.15)
 
-        results5_text = tk.Label(lower_frame, text="Date: ", anchor='sw', justify='left', bg=bg_color,
+        results5_text = tk.Label(lower_frame, text="Date: ", font=40, anchor='sw', justify='left', bg=bg_color,
                                  fg="white")
         results5_text.place(relx=0.04, rely=0.80, relwidth=0.4, relheight=0.15)
 
-        self.results1 = tk.Label(lower_frame, anchor='sw', justify='left', fg=bg_color, bd=10)
+        self.results1 = tk.Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
         self.results1.place(relx=0.49, rely=0.04, relwidth=0.5, relheight=0.15)
 
-        self.results2 = tk.Label(lower_frame, anchor='sw', justify='left', fg=bg_color, bd=10)
+        self.results2 = tk.Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
         self.results2.place(relx=0.49, rely=0.23, relwidth=0.5, relheight=0.15)
 
-        self.results3 = tk.Label(lower_frame, anchor='sw', justify='left', fg=bg_color, bd=10)
+        self.results3 = tk.Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
         self.results3.place(relx=0.49, rely=0.42, relwidth=0.5, relheight=0.15)
 
-        self.results4 = tk.Label(lower_frame, anchor='sw', justify='left', fg=bg_color, bd=10)
+        self.results4 = tk.Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
         self.results4.place(relx=0.49, rely=0.61, relwidth=0.5, relheight=0.15)
 
-        self.results5 = tk.Label(lower_frame, anchor='sw', justify='left', fg=bg_color, bd=10)
+        self.results5 = tk.Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
         self.results5.place(relx=0.49, rely=0.80, relwidth=0.5, relheight=0.15)
 
