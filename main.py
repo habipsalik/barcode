@@ -159,7 +159,7 @@ class Window:
 
         submit = Button(frame, text='Browse', font=40, fg=bg_color, command=lambda: self.parser())
         submit.place(relx=0.02, rely=0.06, relwidth=0.3, relheight=0.3)
-        clear = Button(frame, text="Clear", font=40, fg=bg_color, bg=bg_color, command=lambda: [
+        clear = Button(frame, text="Clear", font=40, fg=bg_color, command=lambda: [
             self.clear_widget_text(self.text_label), self.clear_widget_text(self.results1),
             self.clear_widget_text(self.results2), self.clear_widget_text(self.results3),
             self.clear_widget_text(self.results4), self.clear_widget_text(self.results5)])
