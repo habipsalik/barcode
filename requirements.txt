@@ -12,3 +12,4 @@ query-string==2018.11.20
 request==2018.11.20
 requests==2.21.0
 urllib3==1.24.1
+cx_Freeze==5.1.1
