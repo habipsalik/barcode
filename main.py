@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+
 try:
     from Tkinter import *
 except ImportError:
@@ -22,7 +23,7 @@ except ImportError:
 
 from pyzbar import pyzbar
 import cv2
-import os
+from pylibdmtx import pylibdmtx
 
 
 class Window:
@@ -59,22 +60,40 @@ class Window:
         output = "\n".join(result)
         return output.split("\n")
 
+    def dmtx(self, file_path):
+
+        image = cv2.imread(file_path)
+        datamatrix = pylibdmtx.decode(image)
+
+        result = []
+
+        for dm in datamatrix:
+            data = dm.data
+
+            split_var = '\x1d' if '\x1d' in data else '@' if '@' in data else None
+
+            result.extend(data.split(split_var))
+
+        return result
+
     def parser(self):
 
         # writer file path in text label
         file_path = self.browse_file()
         self.text_label['text'] = file_path
 
-        list_of_codes = ["30P", "1T", "Q", "1P", "9D", "P", "K", "21L", "S", "4L", "10D", "D"]
-        zbar_output = self.zbar(file_path)
+        list_of_codes = ["30P", "1T", "Q", "1P", "9D", "P", "K", "21L", "S", "4L", "10D", "X", "6P", "31T", "16D", "D",
+                         "V"]
 
-        self.fine_result = {}
+        source = self.select_source(file_path)
+
+        fine_result = {}
 
         for code in list_of_codes:
-            for barcode in zbar_output:
+            for barcode in source:
                 if barcode.startswith(code):
                     barcode_ = barcode[len(code):]
-                    self.fine_result['{}'.format(code.lower())] = barcode_
+                    fine_result['{}'.format(code.lower())] = barcode_
                     # print("CODE: {0} --> BARCODE: {1}".format(code, barcodes))
                     break
                 else:
@@ -83,40 +102,66 @@ class Window:
 
         # part no parse
         part_no_codes = ['1p']
-        part_no_code = ''.join(filter(lambda x: x in part_no_codes, self.fine_result.keys()))
-        part_no = self.not_found(part_no_code)
+        part_no_code = ''.join(filter(lambda x: x in part_no_codes, fine_result.keys()))
+        part_no = self.not_found(part_no_code, fine_result)
 
         # customer part no parse
         cus_part_no_codes = ['p']
-        cus_part_no_code = ''.join(filter(lambda x: x in cus_part_no_codes, self.fine_result.keys()))
-        cus_part_no = self.not_found(cus_part_no_code)
+        cus_part_no_code = ''.join(filter(lambda x: x in cus_part_no_codes, fine_result.keys()))
+        cus_part_no = self.not_found(cus_part_no_code, fine_result)
 
         # quantity parse
         quantity_codes = ['q']
-        quantity_code = ''.join(filter(lambda x: x in quantity_codes, self.fine_result.keys()))
-        quantity = self.not_found(quantity_code)
+        quantity_code = ''.join(filter(lambda x: x in quantity_codes, fine_result.keys()))
+        quantity = self.not_found(quantity_code, fine_result)
 
         # lot no parse
-        lot_no_codes = ['1t']
-        lot_no_code = ''.join(filter(lambda x: x in lot_no_codes, self.fine_result.keys()))
-        lot_no = self.not_found(lot_no_code)
+        lot_no_codes = ['1t', '31t']
+        lot_no_code = ''.join(filter(lambda x: x in lot_no_codes, fine_result.keys()))
+        lot_no = self.not_found(lot_no_code, fine_result)
 
         # parse date
         date_of_codes = ['9d', '10d', 'd']
-        date_code = ''.join(filter(lambda x: x in date_of_codes, self.fine_result.keys()))
-        date = self.not_found(date_code)
+        date_code = ''.join(filter(lambda x: x in date_of_codes, fine_result.keys()))
+        date = self.not_found(date_code, fine_result)
 
-        self.results1['text'] = part_no
-        self.results2['text'] = cus_part_no
-        self.results3['text'] = quantity
-        self.results4['text'] = lot_no
-        self.results5['text'] = date
+        # country date
+        country_of_codes = ['4l']
+        country_code = ''.join(filter(lambda x: x in country_of_codes, fine_result.keys()))
+        country = self.not_found(country_code, fine_result)
 
-    def not_found(self, code):
+        # vendor date
+        vendor_of_codes = ['v']
+        vendor_code = ''.join(filter(lambda x: x in vendor_of_codes, fine_result.keys()))
+        vendor = self.not_found(vendor_code, fine_result)
+
+        # customer_po date
+        customer_po_of_codes = ['k']
+        customer_po_code = ''.join(filter(lambda x: x in customer_po_of_codes, fine_result.keys()))
+        customer_po = self.not_found(customer_po_code, fine_result)
+
+        self.part_no['text'] = part_no
+        self.customer_part_no['text'] = cus_part_no
+        self.quantity['text'] = quantity
+        self.lot_no['text'] = lot_no
+        self.date['text'] = date
+        self.country['text'] = country
+        self.vendor['text'] = vendor
+        self.customer_po['text'] = customer_po
+
+    def select_source(self, file):
+        if self.zbar(file) != ['']:
+            return self.zbar(file)
+        elif self.dmtx(file):
+            return self.dmtx(file)
+        else:
+            return []
+
+    def not_found(self, code, fine_result):
         if code == '':
             return 'Not Found'
         else:
-            return self.fine_result[code]
+            return fine_result[code]
 
     def browse_file(self):
         Tk().withdraw()
@@ -128,19 +173,19 @@ class Window:
 
     def __init__(self, master):
 
-        boss.minsize(width=700, height=600)
-        boss.maxsize(width=700, height=600)
+        boss.minsize(width=700, height=700)
+        boss.maxsize(width=700, height=700)
         bg_color = '#485885'
 
         C = Canvas(boss)
-        #self.background_image = PhotoImage(file='./t2.png')
+        # self.background_image = PhotoImage(file='./t2.png')
         background_label = Label(boss, bg=bg_color)
         background_label.place(x=0, y=0, relwidth=1, relheight=1)
 
         C.pack()
 
         frame = LabelFrame(boss, bg=bg_color, bd=10)
-        frame.place(relx=0.5, rely=0.07, relwidth=0.75, relheight=0.2, anchor='n')
+        frame.place(relx=0.5, rely=0.06, relwidth=0.85, relheight=0.16, anchor='n')
 
         # frame1 = Frame(boss, bg='#3d4142', bd=5)
         # frame1.place(relx=0.5, rely=0.25, relwidth=0.75, relheight=0.1, anchor='n')
@@ -154,15 +199,17 @@ class Window:
         self.text_label.place(relx=0.25, rely=0.47, relwidth=0.74, relheight=0.4)
 
         path_text = Label(frame, text="File Path: ", anchor='sw', justify='left', bg=bg_color,
-                             fg="white")
-        path_text.place(relx=0.04, rely=0.47, relwidth=0.19, relheight=0.4)
+                          fg="white")
+        path_text.place(relx=0.03, rely=0.47, relwidth=0.19, relheight=0.36)
 
         submit = Button(frame, text='Browse', font=40, fg=bg_color, command=lambda: self.parser())
         submit.place(relx=0.02, rely=0.06, relwidth=0.3, relheight=0.3)
         clear = Button(frame, text="Clear", font=40, fg=bg_color, command=lambda: [
-            self.clear_widget_text(self.text_label), self.clear_widget_text(self.results1),
-            self.clear_widget_text(self.results2), self.clear_widget_text(self.results3),
-            self.clear_widget_text(self.results4), self.clear_widget_text(self.results5)])
+            self.clear_widget_text(self.text_label), self.clear_widget_text(self.part_no),
+            self.clear_widget_text(self.customer_part_no), self.clear_widget_text(self.quantity),
+            self.clear_widget_text(self.lot_no), self.clear_widget_text(self.date),
+            self.clear_widget_text(self.country),
+            self.clear_widget_text(self.vendor), self.clear_widget_text(self.customer_po)])
 
         clear.place(relx=0.355, rely=0.06, relwidth=0.3, relheight=0.3)
         quit = Button(frame, text="Quit", font=40, fg=bg_color, command=lambda: sys.exit(1))
@@ -176,51 +223,76 @@ class Window:
 
         lower_frame = LabelFrame(boss, fg="white", font=14, text="  Results  ", bg=bg_color, bd=15)
         lower_frame.pack(fill="both", expand="yes")
-        lower_frame.place(relx=0.5, rely=0.32, relwidth=0.75, relheight=0.6, anchor='n')
+        lower_frame.place(relx=0.5, rely=0.26, relwidth=0.85, relheight=0.7, anchor='n')
 
-        results1_text = Label(lower_frame, text="Part No: ", font=40, anchor='sw', justify='left', bg=bg_color,
+        part_no_text = Label(lower_frame, text="Part No: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                             fg="white")
+        part_no_text.place(relx=0.04, rely=0.03, relwidth=0.4, relheight=0.08)
+
+        customer_part_no_text = Label(lower_frame, text="Customer Part No: ", font=40, anchor='sw', justify='left',
+                                      bg=bg_color, fg="white")
+        customer_part_no_text.place(relx=0.04, rely=0.15, relwidth=0.4, relheight=0.08)
+
+        quantity_text = Label(lower_frame, text="Quantity: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                              fg="white")
+        quantity_text.place(relx=0.04, rely=0.27, relwidth=0.4, relheight=0.08)
+
+        lot_no_text = Label(lower_frame, text="Lot No: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                            fg="white")
+        lot_no_text.place(relx=0.04, rely=0.39, relwidth=0.4, relheight=0.08)
+
+        date_text = Label(lower_frame, text="Date: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                          fg="white")
+        date_text.place(relx=0.04, rely=0.51, relwidth=0.4, relheight=0.08)
+
+        country_text = Label(lower_frame, text="Country Of Orgin: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                             fg="white")
+        country_text.place(relx=0.04, rely=0.63, relwidth=0.4, relheight=0.08)
+
+        vendor_text = Label(lower_frame, text="Vendor: ", font=40, anchor='sw', justify='left', bg=bg_color,
+                            fg="white")
+        vendor_text.place(relx=0.04, rely=0.75, relwidth=0.4, relheight=0.08)
+
+        customer_po_text = Label(lower_frame, text="Customer PO: ", font=40, anchor='sw', justify='left', bg=bg_color,
                                  fg="white")
-        results1_text.place(relx=0.04, rely=0.04, relwidth=0.4, relheight=0.15)
+        customer_po_text.place(relx=0.04, rely=0.87, relwidth=0.4, relheight=0.08)
 
-        results2_text = Label(lower_frame, text="Customer Part No: ", font=40, anchor='sw', justify='left',
-                                 bg=bg_color, fg="white")
-        results2_text.place(relx=0.04, rely=0.23, relwidth=0.4, relheight=0.15)
-
-        results3_text = Label(lower_frame, text="Quantity: ", font=40, anchor='sw', justify='left', bg=bg_color,
-                                 fg="white")
-        results3_text.place(relx=0.04, rely=0.42, relwidth=0.4, relheight=0.15)
-
-        results4_text = Label(lower_frame, text="Lot No: ", font=40, anchor='sw', justify='left', bg=bg_color,
-                                 fg="white")
-        results4_text.place(relx=0.04, rely=0.61, relwidth=0.4, relheight=0.15)
-
-        results5_text = Label(lower_frame, text="Date: ", font=40, anchor='sw', justify='left', bg=bg_color,
-                                 fg="white")
-        results5_text.place(relx=0.04, rely=0.80, relwidth=0.4, relheight=0.15)
-
-        self.results1 = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        self.part_no = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
-        self.results1.place(relx=0.49, rely=0.04, relwidth=0.5, relheight=0.15)
+        self.part_no.place(relx=0.39, rely=0.03, relwidth=0.6, relheight=0.08)
 
-        self.results2 = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        self.customer_part_no = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
-        self.results2.place(relx=0.49, rely=0.23, relwidth=0.5, relheight=0.15)
+        self.customer_part_no.place(relx=0.39, rely=0.15, relwidth=0.6, relheight=0.08)
 
-        self.results3 = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        self.quantity = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
-        self.results3.place(relx=0.49, rely=0.42, relwidth=0.5, relheight=0.15)
+        self.quantity.place(relx=0.39, rely=0.27, relwidth=0.6, relheight=0.08)
 
-        self.results4 = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        self.lot_no = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
-        self.results4.place(relx=0.49, rely=0.61, relwidth=0.5, relheight=0.15)
+        self.lot_no.place(relx=0.39, rely=0.39, relwidth=0.6, relheight=0.08)
 
-        self.results5 = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        self.date = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
         # self.results.config(font=40, bg=bg_color)
-        self.results5.place(relx=0.49, rely=0.80, relwidth=0.5, relheight=0.15)
+        self.date.place(relx=0.39, rely=0.51, relwidth=0.6, relheight=0.08)
+
+        self.country = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        # self.results.config(font=40, bg=bg_color)
+        self.country.place(relx=0.39, rely=0.63, relwidth=0.6, relheight=0.08)
+
+        self.vendor = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        # self.results.config(font=40, bg=bg_color)
+        self.vendor.place(relx=0.39, rely=0.75, relwidth=0.6, relheight=0.08)
+
+        self.customer_po = Label(lower_frame, anchor='sw', font=40, justify='left', fg=bg_color, bd=10)
+        # self.results.config(font=40, bg=bg_color)
+        self.customer_po.place(relx=0.39, rely=0.87, relwidth=0.6, relheight=0.08)
 
 
 boss = Tk()
 boss.title("B-OSS")
 window = Window(boss)
 boss.protocol("WM_DELETE_WINDOW", lambda: sys.exit(1))
+boss.wm_iconbitmap(r'b-oss1.ico')
 boss.mainloop()
