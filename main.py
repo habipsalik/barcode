@@ -82,16 +82,18 @@ class Window:
         file_path = self.browse_file()
         self.text_label['text'] = file_path
 
-        list_of_codes = ["30P", "1T", "Q", "1P", "9D", "P", "K", "21L", "S", "4L", "10D", "D", "X", "6P", "31T", "16D",
+        list_of_codes = ["30P", "1T", "Q", "1P", "9D", "P", "K", "21L", "S", "4L", "10D", "X", "6P", "31T", "16D", "D",
                          "V"]
 
         source = self.select_source(file_path)
+
+        fine_result = {}
 
         for code in list_of_codes:
             for barcode in source:
                 if barcode.startswith(code):
                     barcode_ = barcode[len(code):]
-                    self.fine_result['{}'.format(code.lower())] = barcode_
+                    fine_result['{}'.format(code.lower())] = barcode_
                     # print("CODE: {0} --> BARCODE: {1}".format(code, barcodes))
                     break
                 else:
@@ -100,43 +102,43 @@ class Window:
 
         # part no parse
         part_no_codes = ['1p']
-        part_no_code = ''.join(filter(lambda x: x in part_no_codes, self.fine_result.keys()))
-        part_no = self.not_found(part_no_code)
+        part_no_code = ''.join(filter(lambda x: x in part_no_codes, fine_result.keys()))
+        part_no = self.not_found(part_no_code, fine_result)
 
         # customer part no parse
         cus_part_no_codes = ['p']
-        cus_part_no_code = ''.join(filter(lambda x: x in cus_part_no_codes, self.fine_result.keys()))
-        cus_part_no = self.not_found(cus_part_no_code)
+        cus_part_no_code = ''.join(filter(lambda x: x in cus_part_no_codes, fine_result.keys()))
+        cus_part_no = self.not_found(cus_part_no_code, fine_result)
 
         # quantity parse
         quantity_codes = ['q']
-        quantity_code = ''.join(filter(lambda x: x in quantity_codes, self.fine_result.keys()))
-        quantity = self.not_found(quantity_code)
+        quantity_code = ''.join(filter(lambda x: x in quantity_codes, fine_result.keys()))
+        quantity = self.not_found(quantity_code, fine_result)
 
         # lot no parse
         lot_no_codes = ['1t', '31t']
-        lot_no_code = ''.join(filter(lambda x: x in lot_no_codes, self.fine_result.keys()))
-        lot_no = self.not_found(lot_no_code)
+        lot_no_code = ''.join(filter(lambda x: x in lot_no_codes, fine_result.keys()))
+        lot_no = self.not_found(lot_no_code, fine_result)
 
         # parse date
         date_of_codes = ['9d', '10d', 'd']
-        date_code = ''.join(filter(lambda x: x in date_of_codes, self.fine_result.keys()))
-        date = self.not_found(date_code)
+        date_code = ''.join(filter(lambda x: x in date_of_codes, fine_result.keys()))
+        date = self.not_found(date_code, fine_result)
 
         # country date
         country_of_codes = ['4l']
-        country_code = ''.join(filter(lambda x: x in country_of_codes, self.fine_result.keys()))
-        country = self.not_found(country_code)
+        country_code = ''.join(filter(lambda x: x in country_of_codes, fine_result.keys()))
+        country = self.not_found(country_code, fine_result)
 
         # vendor date
         vendor_of_codes = ['v']
-        vendor_code = ''.join(filter(lambda x: x in vendor_of_codes, self.fine_result.keys()))
-        vendor = self.not_found(vendor_code)
+        vendor_code = ''.join(filter(lambda x: x in vendor_of_codes, fine_result.keys()))
+        vendor = self.not_found(vendor_code, fine_result)
 
         # customer_po date
         customer_po_of_codes = ['k']
-        customer_po_code = ''.join(filter(lambda x: x in customer_po_of_codes, self.fine_result.keys()))
-        customer_po = self.not_found(customer_po_code)
+        customer_po_code = ''.join(filter(lambda x: x in customer_po_of_codes, fine_result.keys()))
+        customer_po = self.not_found(customer_po_code, fine_result)
 
         self.part_no['text'] = part_no
         self.customer_part_no['text'] = cus_part_no
@@ -155,11 +157,11 @@ class Window:
         else:
             return []
 
-    def not_found(self, code):
+    def not_found(self, code, fine_result):
         if code == '':
             return 'Not Found'
         else:
-            return self.fine_result[code]
+            return fine_result[code]
 
     def browse_file(self):
         Tk().withdraw()
@@ -170,8 +172,6 @@ class Window:
         widget['text'] = ""
 
     def __init__(self, master):
-
-        self.fine_result = {}
 
         boss.minsize(width=700, height=700)
         boss.maxsize(width=700, height=700)
