@@ -9,7 +9,7 @@ distutils_path = os.path.join(os.path.dirname(opcode.__file__), 'distutils')
 
 build_exe_options = {
     "packages":["Tkinter", "pyzbar", "numpy", "pylibdmtx"],
-    "include_files":[(distutils_path, 'lib/distutils'), ".\\data"],
+    "include_files":[(distutils_path, 'lib/distutils'), ".\\data", ".\\license.txt"],
     "excludes": ["distutils"]
     }
 
