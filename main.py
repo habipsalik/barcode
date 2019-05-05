@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import sys
+import os
 
 try:
     from Tkinter import *
@@ -294,5 +295,5 @@ boss = Tk()
 boss.title("B-OSS")
 window = Window(boss)
 boss.protocol("WM_DELETE_WINDOW", lambda: sys.exit(1))
-boss.wm_iconbitmap(r'b-oss1.ico')
+boss.wm_iconbitmap(r'.\\data/b-oss1.ico')
 boss.mainloop()
