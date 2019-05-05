@@ -1,18 +1,16 @@
-import cx_Freeze
 import sys
+import cx_Freeze
+import distutils
+import opcode
+import os
 
-company_name = 'B-OSS Reader'
-product_name = 'B-OSS'
-
-bdist_msi_options = {
-    'upgrade_code': '{66620F3A-DC3A-11E2-B341-002219E9B01E}',
-    'add_to_path': False,
-    'initial_target_dir': r'[ProgramFilesFolder]\%s\%s' % (company_name, product_name),
-    }
+product_name = 'B-OSS Reader'
+distutils_path = os.path.join(os.path.dirname(opcode.__file__), 'distutils')
 
 build_exe_options = {
-    "packages":["Tkinter", "pyzbar", "numpy"],
-    "include_files":["C:/User/barcode/b-oss.ico"],
+    "packages":["Tkinter", "pyzbar", "numpy", "pylibdmtx"],
+    "include_files":[(distutils_path, 'lib/distutils'), ".\\data"],
+    "excludes": ["distutils"]
     }
 
 base = None
@@ -20,13 +18,12 @@ base = None
 if sys.platform == 'win32':
     base = "Win32GUI"
 
-executables = [cx_Freeze.Executable("C:/User/barcode/main.py", base=base, icon="C:/User/barcode/b-oss.ico")]
+executables = [cx_Freeze.Executable("main.py", base=base)]
 
 cx_Freeze.setup(
     name = "B-OSS",
-    options = {'bdist_msi': bdist_msi_options,
-          'build_exe': build_exe_options},
-    version = "1.0",
+    options = {'build_exe': build_exe_options},
+    version = "1.0.1",
     description = "Reader application",
-    executables = executables
+    executables = executables,
     )
